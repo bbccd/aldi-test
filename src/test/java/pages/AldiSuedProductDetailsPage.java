@@ -65,7 +65,7 @@ public class AldiSuedProductDetailsPage {
         storeSearchBoxByPostalCode.sendKeys(postalCode);
         storeSearchSubmitButton.click();
 
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         WebElement dealersSubList = dealerList.findElement(By.tagName("ul"));
         List<WebElement> dealers = dealersSubList.findElements(By.tagName("li"));
         System.out.println("Number of dealers found: " + dealers.size());
@@ -73,10 +73,12 @@ public class AldiSuedProductDetailsPage {
         WebElement firstStore = dealerList.findElement(By.id("dealer-id-1"));
         WebElement firstStoreAvailability = firstStore.findElement(By.className("badge-dealer-stock"));
         int availabilityLevel = 0;
-        if (firstStoreAvailability.getAttribute("class").contains("badge-warning")){
+        if (firstStoreAvailability.getAttribute("class").contains("badge-danger")){
             availabilityLevel = 1;
-        } else if (firstStoreAvailability.getAttribute("class").contains("badge-success")) {
+        } else if (firstStoreAvailability.getAttribute("class").contains("badge-warning")){
             availabilityLevel = 2;
+        } else if (firstStoreAvailability.getAttribute("class").contains("badge-success")) {
+            availabilityLevel = 3;
         }
         System.out.println("Availability level at first dealer: " + availabilityLevel);
 
