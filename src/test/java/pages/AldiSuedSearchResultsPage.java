@@ -24,6 +24,7 @@ public class AldiSuedSearchResultsPage {
         PageFactory.initElements(driver, this);
     }
 
+    // Open the details page to the first result item in the list of search result items.
     public AldiSuedProductDetailsPage openResult(){
         // Click the Details button on the correct result
         // list results = resultsList.findElements(By.className("plp_product"));

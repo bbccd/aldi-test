@@ -31,15 +31,17 @@ public class AldiSuedHomePage {
         PageFactory.initElements(driver, this);
     }
 
-    //We will use this boolean for assertion. To check if page is opened
+    // We will use this boolean for assertion to check if modal dialog (Cookies) is displayed:
     public boolean isModalDialogDisplayed(){
         return cookieModalDialog.isDisplayed();
     }
 
+    // Helper function to close the modal dialog:
     public void closeModalDialog(){
         confirmCookieSelectionModal.click();
     }
 
+    // Submitting a search for a certain string.
     public AldiSuedSearchResultsPage submitSearch(String searchstring){
         searchBar.clear();
         searchBar.sendKeys(searchstring);

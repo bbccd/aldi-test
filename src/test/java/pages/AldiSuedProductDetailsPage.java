@@ -47,31 +47,53 @@ public class AldiSuedProductDetailsPage {
     }
 
     public Boolean checkStoreAvailability(String postalCode, int level) throws InterruptedException {
-        //Instantiating Actions class
-        Actions actions = new Actions(driver);
-        //Hovering on Store Availability button
-        actions.moveToElement(checkStoreAvailabilityButton).build().perform();
-        Thread.sleep(1000);
-        googleMapsTooltip.sendKeys(Keys.TAB);
-        googleMapsTooltip.sendKeys(Keys.ENTER);
+        handleGoogleMapsPopover();
 
-        WebElement acceptGooglePolicyButton = googleMapsTooltip.findElement(By.className("google-maps-cookie-enabled"));
-
-        acceptGooglePolicyButton.click();
-        //
         checkStoreAvailabilityButton.click();
+        fillOutAndSubmitStoreSearchUI(postalCode);
 
-        storeSearchBoxByPostalCode.clear();
-        storeSearchBoxByPostalCode.sendKeys(postalCode);
-        storeSearchSubmitButton.click();
-
-        Thread.sleep(3000);
+        Thread.sleep(10000);
         WebElement dealersSubList = dealerList.findElement(By.tagName("ul"));
         List<WebElement> dealers = dealersSubList.findElements(By.tagName("li"));
         System.out.println("Number of dealers found: " + dealers.size());
 
         WebElement firstStore = dealerList.findElement(By.id("dealer-id-1"));
         WebElement firstStoreAvailability = firstStore.findElement(By.className("badge-dealer-stock"));
+
+        int availabilityLevel = getFirstStoreAvailability(firstStoreAvailability);
+
+        Boolean returnValue = checkStoreAvailabilityAgainstThreshold(availabilityLevel, level);
+        return returnValue;
+    }
+
+    public Boolean productNameAsserts(String productName) {
+        System.out.println("Text on item found: " + targetProductName.getText());
+        return targetProductName.getText().equals(productName);
+    }
+
+    private void fillOutAndSubmitStoreSearchUI(String postalCode){
+
+        storeSearchBoxByPostalCode.clear();
+        storeSearchBoxByPostalCode.sendKeys(postalCode);
+        storeSearchSubmitButton.click();
+    }
+
+    private void handleGoogleMapsPopover() throws InterruptedException {
+        // To make sure the popover displays, we simulate a mouse hover over the "Verfügbarkeit prüfen" button
+            //Instantiating Actions class
+            Actions actions = new Actions(driver);
+            //Hovering on Store Availability button
+            actions.moveToElement(checkStoreAvailabilityButton).build().perform();
+            Thread.sleep(1000);
+        // Try to close the popover (called "tooltip" internally) using keyboard buttons (doesn't work reliably, but doesn't hurt either):
+        googleMapsTooltip.sendKeys(Keys.TAB);
+        googleMapsTooltip.sendKeys(Keys.ENTER);
+        // Again, try to  close by explicitly pushing the button (first need to find it now after hovering; this works more reliably):
+        WebElement acceptGooglePolicyButton = googleMapsTooltip.findElement(By.className("google-maps-cookie-enabled"));
+        acceptGooglePolicyButton.click();
+    }
+
+    private int getFirstStoreAvailability(WebElement firstStoreAvailability) {
         int availabilityLevel = 0;
         if (firstStoreAvailability.getAttribute("class").contains("badge-danger")){
             availabilityLevel = 1;
@@ -81,27 +103,29 @@ public class AldiSuedProductDetailsPage {
             availabilityLevel = 3;
         }
         System.out.println("Availability level at first dealer: " + availabilityLevel);
+        return availabilityLevel;
+    }
 
+    private Boolean checkStoreAvailabilityAgainstThreshold(int actualAvailabilityLevel, int thresholdAvailabilityLevel){
+        System.out.println("Checking availability level. Actual value: " + actualAvailabilityLevel + ", threshold value: " + thresholdAvailabilityLevel);
         // if user wants NO availability, check strictly that item is NOT available:
-        if (level == 0) {
-            if (availabilityLevel == 0) {
+        if (thresholdAvailabilityLevel == 0) {
+            if (actualAvailabilityLevel == 0) {
+                System.out.println("Availability should be 0 and is actually 0. Returning true.");
                 return true;
             } else {
+                System.out.println("Availability should be 0, but is actually " + actualAvailabilityLevel + ". Returning false.");
                 return false;
             }
         }
 
         // else, check that availability is at least as good as requested:
-        if (availabilityLevel >= level) {
+        if (actualAvailabilityLevel >= thresholdAvailabilityLevel) {
+            System.out.println("Availability should be " + thresholdAvailabilityLevel + " or higher, and is actually " + actualAvailabilityLevel + ". Returning true.");
             return true;
-        }
-        else {
+        } else {
+            System.out.println("Availability should be " + thresholdAvailabilityLevel + " or higher, and is actually " + actualAvailabilityLevel + ". Returning false.");
             return false;
         }
-    }
-
-    public Boolean productNameAsserts(String productName) {
-        System.out.println("Text on item found: " + targetProductName.getText());
-        return targetProductName.getText().equals(productName);
     }
 }
